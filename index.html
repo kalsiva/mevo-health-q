@@ -23,6 +23,7 @@
             const [step, setStep] = React.useState(0);
             const [showZodiac, setShowZodiac] = React.useState(false);
             const [showThankYou, setShowThankYou] = React.useState(false);
+            const [countdown, setCountdown] = React.useState(10);
             const [formData, setFormData] = React.useState({
                 name: '', type: '', email: '', dateOfBirth: '', medicalHistory: '',
                 smoker: '', alcohol: '', exercise: '', stress: '', sleep: ''
@@ -40,6 +41,27 @@
                 { key: 'stress', label: 'How would you rate your stress level?', type: 'select', options: ['Low', 'Moderate', 'High'] },
                 { key: 'sleep', label: 'How many hours of sleep do you typically get?', type: 'select', options: ['Less than 6', '6-8', 'More than 8'] },
             ];
+
+            React.useEffect(() => {
+                let timer;
+                if (showThankYou && countdown > 0) {
+                    timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+                } else if (showThankYou && countdown === 0) {
+                    resetForm();
+                }
+                return () => clearTimeout(timer);
+            }, [showThankYou, countdown]);
+
+            const resetForm = () => {
+                setStep(0);
+                setShowZodiac(false);
+                setShowThankYou(false);
+                setCountdown(10);
+                setFormData({
+                    name: '', type: '', email: '', dateOfBirth: '', medicalHistory: '',
+                    smoker: '', alcohol: '', exercise: '', stress: '', sleep: ''
+                });
+            };
 
             const getZodiacSign = (date) => {
                 const month = parseInt(date.split('-')[1]);
@@ -153,6 +175,7 @@
                     <div>
                         <h1>Thank You!</h1>
                         <p>Your health questionnaire has been submitted successfully. We appreciate your time and honesty in filling out this form.</p>
+                        <p>Returning to the start in {countdown} seconds...</p>
                     </div>
                 );
             }
