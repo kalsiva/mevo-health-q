@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Questionnaire</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f0f0; }
+        #root { max-width: 500px; margin: 20px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #0066cc; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:disabled { background-color: #cccccc; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const PatientRegistrationForm = () => {
+            const [step, setStep] = React.useState(0);
+            const [formData, setFormData] = React.useState({
+                name: '', type: '', email: '', dateOfBirth: '', medicalHistory: '',
+                smoker: '', alcohol: '', exercise: '', stress: '', sleep: ''
+            });
+
+            const questions = [
+                { key: 'name', label: 'What is your full name?', type: 'text' },
+                { key: 'type', label: 'Are you here for screening or diagnostics?', type: 'select', options: ['Guest (Screening)', 'Patient (Diagnostics)'] },
+                { key: 'email', label: 'What is your email address?', type: 'email' },
+                { key: 'dateOfBirth', label: 'What is your date of birth?', type: 'date' },
+                { key: 'medicalHistory', label: 'Do you have any significant medical history?', type: 'text' },
+                { key: 'smoker', label: 'Do you smoke?', type: 'select', options: ['Yes', 'No', 'Former smoker'] },
+                { key: 'alcohol', label: 'How often do you consume alcohol?', type: 'select', options: ['Never', 'Occasionally', 'Regularly'] },
+                { key: 'exercise', label: 'How often do you exercise?', type: 'select', options: ['Rarely', '1-2 times/week', '3+ times/week'] },
+                { key: 'stress', label: 'How would you rate your stress level?', type: 'select', options: ['Low', 'Moderate', 'High'] },
+                { key: 'sleep', label: 'How many hours of sleep do you typically get?', type: 'select', options: ['Less than 6', '6-8', 'More than 8'] },
+            ];
+
+            const handleInputChange = (e) => {
+                setFormData({ ...formData, [questions[step].key]: e.target.value });
+            };
+
+            const handleNext = () => {
+                if (step < questions.length - 1) {
+                    setStep(step + 1);
+                } else {
+                    handleSubmit();
+                }
+            };
+
+            const handlePrevious = () => {
+                if (step > 0) {
+                    setStep(step - 1);
+                }
+            };
+
+            const handleSubmit = () => {
+                console.log('Form submitted:', formData);
+                alert('Form submitted successfully!');
+            };
+
+            const renderInput = (question) => {
+                if (question.type === 'select') {
+                    return (
+                        <select name={question.key} value={formData[question.key]} onChange={handleInputChange}>
+                            <option value="">Select an option</option>
+                            {question.options.map((option, index) => (
+                                <option key={index} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    );
+                }
+                return (
+                    <input
+                        type={question.type}
+                        name={question.key}
+                        value={formData[question.key]}
+                        onChange={handleInputChange}
+                    />
+                );
+            };
+
+            return (
+                <div>
+                    <h1>Health Questionnaire</h1>
+                    <form name="health-questionnaire" method="POST" data-netlify="true" onSubmit={(e) => e.preventDefault()}>
+                        <input type="hidden" name="form-name" value="health-questionnaire" />
+                        <h2>{questions[step].label}</h2>
+                        {renderInput(questions[step])}
+                        <div>
+                            <button type="button" onClick={handlePrevious} disabled={step === 0}>Previous</button>
+                            <button type="button" onClick={handleNext}>{step === questions.length - 1 ? 'Submit' : 'Next'}</button>
+                        </div>
+                    </form>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<PatientRegistrationForm />, document.getElementById('root'));
+    </script>
+</body>
+</html>
