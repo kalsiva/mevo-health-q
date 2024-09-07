@@ -13,6 +13,7 @@
         input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
         button { background-color: #0066cc; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
         button:disabled { background-color: #cccccc; }
+        .zodiac-message { background-color: #e6f3ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -20,6 +21,8 @@
     <script type="text/babel">
         const PatientRegistrationForm = () => {
             const [step, setStep] = React.useState(0);
+            const [showZodiac, setShowZodiac] = React.useState(false);
+            const [showThankYou, setShowThankYou] = React.useState(false);
             const [formData, setFormData] = React.useState({
                 name: '', type: '', email: '', dateOfBirth: '', medicalHistory: '',
                 smoker: '', alcohol: '', exercise: '', stress: '', sleep: ''
@@ -38,12 +41,59 @@
                 { key: 'sleep', label: 'How many hours of sleep do you typically get?', type: 'select', options: ['Less than 6', '6-8', 'More than 8'] },
             ];
 
+            const getZodiacSign = (date) => {
+                const month = parseInt(date.split('-')[1]);
+                const day = parseInt(date.split('-')[2]);
+                const signs = [
+                    {name: "Capricorn", start: [1, 1], end: [1, 19]},
+                    {name: "Aquarius", start: [1, 20], end: [2, 18]},
+                    {name: "Pisces", start: [2, 19], end: [3, 20]},
+                    {name: "Aries", start: [3, 21], end: [4, 19]},
+                    {name: "Taurus", start: [4, 20], end: [5, 20]},
+                    {name: "Gemini", start: [5, 21], end: [6, 20]},
+                    {name: "Cancer", start: [6, 21], end: [7, 22]},
+                    {name: "Leo", start: [7, 23], end: [8, 22]},
+                    {name: "Virgo", start: [8, 23], end: [9, 22]},
+                    {name: "Libra", start: [9, 23], end: [10, 22]},
+                    {name: "Scorpio", start: [10, 23], end: [11, 21]},
+                    {name: "Sagittarius", start: [11, 22], end: [12, 21]},
+                    {name: "Capricorn", start: [12, 22], end: [12, 31]}
+                ];
+                for (let sign of signs) {
+                    if ((month === sign.start[0] && day >= sign.start[1]) ||
+                        (month === sign.end[0] && day <= sign.end[1])) {
+                        return sign.name;
+                    }
+                }
+                return "Unknown";
+            };
+
+            const getZodiacMessage = (sign) => {
+                const messages = {
+                    "Aries": "Your energy and enthusiasm are contagious!",
+                    "Taurus": "Your stability brings comfort to those around you.",
+                    "Gemini": "Your curiosity leads you to constant learning.",
+                    "Cancer": "Your intuition helps you understand others deeply.",
+                    "Leo": "Your warmth and charisma light up any room!",
+                    "Virgo": "Your attention to detail ensures everything is just right.",
+                    "Libra": "Your diplomacy creates harmony wherever you go.",
+                    "Scorpio": "Your intensity allows you to dive deep into any subject.",
+                    "Sagittarius": "Your spirit of adventure keeps life exciting!",
+                    "Capricorn": "Your determination helps you achieve great things.",
+                    "Aquarius": "Your originality brings fresh perspectives to every situation.",
+                    "Pisces": "Your compassion gives you a gift for understanding others."
+                };
+                return messages[sign] || "Your unique personality shines through!";
+            };
+
             const handleInputChange = (e) => {
                 setFormData({ ...formData, [questions[step].key]: e.target.value });
             };
 
             const handleNext = () => {
-                if (step < questions.length - 1) {
+                if (step === 3 && formData.dateOfBirth) {
+                    setShowZodiac(true);
+                } else if (step < questions.length - 1) {
                     setStep(step + 1);
                 } else {
                     handleSubmit();
@@ -57,8 +107,24 @@
             };
 
             const handleSubmit = () => {
-                console.log('Form submitted:', formData);
-                alert('Form submitted successfully!');
+                // Create a hidden form and submit it to Netlify
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.setAttribute('data-netlify', 'true');
+                form.setAttribute('name', 'health-questionnaire');
+
+                Object.keys(formData).forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = formData[key];
+                    form.appendChild(input);
+                });
+
+                document.body.appendChild(form);
+                form.submit();
+
+                setShowThankYou(true);
             };
 
             const renderInput = (question) => {
@@ -82,11 +148,31 @@
                 );
             };
 
+            if (showThankYou) {
+                return (
+                    <div>
+                        <h1>Thank You!</h1>
+                        <p>Your health questionnaire has been submitted successfully. We appreciate your time and honesty in filling out this form.</p>
+                    </div>
+                );
+            }
+
+            if (showZodiac) {
+                const zodiacSign = getZodiacSign(formData.dateOfBirth);
+                const zodiacMessage = getZodiacMessage(zodiacSign);
+                return (
+                    <div className="zodiac-message">
+                        <h2>Your Zodiac Sign: {zodiacSign}</h2>
+                        <p>{zodiacMessage}</p>
+                        <button onClick={() => { setShowZodiac(false); setStep(step + 1); }}>Continue</button>
+                    </div>
+                );
+            }
+
             return (
                 <div>
                     <h1>Health Questionnaire</h1>
-                    <form name="health-questionnaire" method="POST" data-netlify="true" onSubmit={(e) => e.preventDefault()}>
-                        <input type="hidden" name="form-name" value="health-questionnaire" />
+                    <form onSubmit={(e) => e.preventDefault()}>
                         <h2>{questions[step].label}</h2>
                         {renderInput(questions[step])}
                         <div>
