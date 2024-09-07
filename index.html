@@ -128,25 +128,32 @@
                 }
             };
 
+            const submitFormData = async (data) => {
+                const formData = new FormData();
+                Object.keys(data).forEach(key => formData.append(key, data[key]));
+
+                try {
+                    const response = await fetch('/', {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams(formData).toString()
+                    });
+                    if (response.ok) {
+                        setShowThankYou(true);
+                    } else {
+                        alert('Form submission failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            };
+
             const handleSubmit = () => {
-                // Create a hidden form and submit it to Netlify
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.setAttribute('data-netlify', 'true');
-                form.setAttribute('name', 'health-questionnaire');
-
-                Object.keys(formData).forEach(key => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = formData[key];
-                    form.appendChild(input);
+                submitFormData({
+                    'form-name': 'health-questionnaire',
+                    ...formData
                 });
-
-                document.body.appendChild(form);
-                form.submit();
-
-                setShowThankYou(true);
             };
 
             const renderInput = (question) => {
@@ -195,7 +202,8 @@
             return (
                 <div>
                     <h1>Health Questionnaire</h1>
-                    <form onSubmit={(e) => e.preventDefault()}>
+                    <form name="health-questionnaire" method="POST" data-netlify="true" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                        <input type="hidden" name="form-name" value="health-questionnaire" />
                         <h2>{questions[step].label}</h2>
                         {renderInput(questions[step])}
                         <div>
